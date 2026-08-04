@@ -628,3 +628,164 @@ body.menu-open .menu-scrim{opacity:1;visibility:visible;pointer-events:auto}
   .bms-feed-overview-grid{grid-template-columns:1fr}
   .bms-feed-overview-card .bms-feed-overview-stage{aspect-ratio:1.5}
 }
+
+
+/* V22 — original portfolio assets only; layout and responsive refinement. */
+:root{
+  --container:1380px;
+  --gutter:clamp(20px,4.2vw,64px);
+  --radius-panel:30px;
+  --radius-card:18px;
+}
+
+/* More disciplined vertical rhythm. */
+.section{padding-block:clamp(74px,8vw,116px)}
+.case-hero{padding-top:96px}
+.case-hero>.container{width:min(calc(100% - (var(--gutter)*2)),1380px)}
+.case-intro-panel{border-radius:30px}
+.case-intro-copy{padding:clamp(44px,5.6vw,76px) clamp(28px,5.4vw,72px) clamp(34px,4vw,52px)}
+.case-title{max-width:13ch;font-size:clamp(58px,7.1vw,104px);line-height:.91;letter-spacing:-.068em}
+.case-intro-panel.opera .case-title{max-width:15ch;font-size:clamp(56px,6.8vw,100px)}
+.case-intro-copy .lead{max-width:610px;margin-top:24px;font-size:clamp(17px,1.4vw,21px)}
+.case-meta-strip{grid-template-columns:1.05fr .48fr 1.1fr 1.15fr;padding-inline:clamp(28px,5.4vw,72px)}
+.case-meta-strip div{padding:18px 20px 20px 0}
+.case-meta-strip div+div{padding-left:20px}
+.case-meta-strip dd{font-size:13px}
+
+/* Key visual: page-specific frame ratios instead of forcing every project into 4:5. */
+.key-visual-block{margin-top:18px;padding:clamp(16px,2vw,26px);border-radius:30px}
+.key-visual-topline{padding:2px 4px 12px;font-size:9px}
+.key-visual-shell{min-height:clamp(580px,58vw,800px)}
+.key-visual-deck{height:clamp(530px,54vw,750px)}
+.key-visual-card{width:min(54vw,620px);border-radius:26px;box-shadow:0 26px 72px rgba(0,0,0,.28)}
+.key-visual-card.is-active{box-shadow:0 34px 90px rgba(0,0,0,.36)}
+.key-visual-card.is-prev{transform:translate3d(calc(-50% - 38%),-50%,-120px) rotateY(9deg) scale(.80)}
+.key-visual-card.is-next{transform:translate3d(calc(-50% + 38%),-50%,-120px) rotateY(-9deg) scale(.80)}
+.key-visual-stage{aspect-ratio:4/5;background:#f0ece7}
+.key-visual-block.golden .key-visual-shell,.key-visual-block.rugs .key-visual-shell{min-height:clamp(500px,49vw,700px)}
+.key-visual-block.golden .key-visual-deck,.key-visual-block.rugs .key-visual-deck{height:clamp(450px,45vw,650px)}
+.key-visual-block.golden .key-visual-card,.key-visual-block.rugs .key-visual-card{width:min(66vw,840px)}
+.key-visual-block.golden .key-visual-stage,.key-visual-block.rugs .key-visual-stage{aspect-ratio:4/3}
+.key-visual-stage picture{height:100%}
+.key-visual-stage img{width:100%;height:100%;object-fit:contain}
+.key-visual-card figcaption{min-height:46px;padding:12px 15px;font-size:10px}
+.key-visual-edge-control{width:48px;height:48px;font-size:20px;box-shadow:0 10px 28px rgba(0,0,0,.2)}
+.key-visual-edge-prev{left:12px}.key-visual-edge-next{right:12px}
+.key-visual-navigation{grid-template-columns:1fr auto auto;gap:16px;padding:12px 4px 0}
+.key-visual-hint{font-size:10px}
+.key-visual-pagination{min-height:40px}
+.key-visual-nav-actions{min-height:40px}
+
+/* Overview: keep text readable and align the scope with the editorial grid. */
+.case-story{grid-template-columns:minmax(280px,.68fr) minmax(0,1.32fr);gap:clamp(44px,7vw,96px);align-items:start}
+.case-story>.reveal{position:sticky;top:130px}
+.case-story-copy{gap:clamp(24px,3vw,42px)}
+.case-story article p{font-size:16px;line-height:1.68}
+.scope-list{margin-top:30px}
+.scope-list li{padding:14px 0}
+
+/* All output sections follow one consistent reading system. */
+.opera-work-section{padding-block:clamp(76px,8.5vw,112px)}
+.opera-work-section+.opera-work-section{border-top-color:rgba(226,217,208,.11)}
+.opera-section-head{grid-template-columns:minmax(0,1fr) minmax(300px,.72fr);gap:clamp(36px,6vw,84px);margin-bottom:clamp(32px,4.5vw,54px)}
+.opera-section-head .h2{max-width:12.5ch;font-size:clamp(40px,4.9vw,70px)}
+.opera-section-head .lead{max-width:520px;font-size:clamp(17px,1.45vw,21px)}
+.opera-pair-grid{gap:clamp(18px,2.25vw,30px);align-items:start}
+.opera-art-card{display:grid;grid-template-rows:auto auto;border-radius:18px;box-shadow:0 18px 48px rgba(0,0,0,.11)}
+.opera-art-stage{min-height:0;padding:0;background:#ece7e1}
+.opera-art-stage picture{height:auto}
+.opera-art-stage img{width:100%;height:auto;object-fit:contain}
+.product-pair .opera-art-stage,.lifestyle-pair .opera-art-stage,.opera-art-stage.landscape-stage,.opera-art-stage.square-stage{aspect-ratio:auto;padding:0}
+/* Tall photography stays visually balanced without cropping. */
+.golden-pair .opera-art-stage{aspect-ratio:3/4;padding:clamp(10px,1.2vw,16px);background:#eee7df}
+.golden-pair .opera-art-stage picture{height:100%}
+.golden-pair .opera-art-stage img{height:100%;object-fit:contain}
+/* Feed overviews use their native screenshot ratio exactly. */
+.bms-feed-overview-card .bms-feed-overview-stage{aspect-ratio:1067/723;padding:0;background:#151336}
+.bms-feed-overview-card .bms-feed-overview-stage picture{height:100%}
+.bms-feed-overview-card .bms-feed-overview-stage img{width:100%;height:100%;object-fit:contain;transform:none!important}
+.opera-art-caption{min-height:48px;padding:13px 15px;font-size:11px}
+.opera-art-format{font-size:9px}
+
+/* Story mockups: same dimensions and optical alignment across every case study. */
+.opera-story-grid{width:min(100%,1040px);margin-inline:auto;gap:clamp(22px,4vw,54px)}
+.opera-story-card{display:grid;align-content:start;padding:clamp(22px,3vw,34px);border-radius:28px}
+.opera-phone-shell{width:min(100%,340px);padding:10px;border-radius:44px;box-shadow:0 28px 64px rgba(0,0,0,.30)}
+.opera-phone-shell::before{top:17px;width:82px;height:20px}
+.opera-phone-screen{border-radius:35px}
+.opera-phone-screen img{object-fit:cover}
+.opera-phone-screen.contain img{padding:10px;object-fit:contain}
+.opera-story-caption{margin-top:18px}
+.opera-story-caption strong{font-size:14px}
+
+/* Three-part campaigns maintain equal visual weight. */
+.opera-campaign-grid{gap:clamp(16px,2vw,24px)}
+.opera-campaign-grid .opera-art-stage{aspect-ratio:4/5;padding:0}
+.opera-campaign-grid.square-campaign .opera-art-stage{aspect-ratio:1}
+.opera-campaign-grid .opera-art-stage picture{height:100%}
+.opera-campaign-grid .opera-art-stage img{height:100%;object-fit:contain}
+
+/* Homepage selected work: clearer row proportions, original imagery unchanged. */
+.archive-grid{gap:clamp(34px,4vw,56px)}
+.archive-row{gap:clamp(18px,2.2vw,28px)}
+.archive-row.feature-row{grid-template-columns:minmax(0,1.45fr) minmax(300px,.85fr)}
+.archive-row.equal-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+.archive-row.feature-row .archive-media{height:clamp(390px,33vw,520px)}
+.archive-row.equal-row .archive-media{height:clamp(340px,28vw,440px)}
+.archive-meta{padding-top:12px}
+
+@media(max-width:1100px){
+  .case-story{grid-template-columns:1fr}.case-story>.reveal{position:static}
+  .opera-section-head{grid-template-columns:1fr}.opera-section-head .lead{justify-self:start}
+  .key-visual-card{width:min(64vw,600px)}
+  .key-visual-block.golden .key-visual-card,.key-visual-block.rugs .key-visual-card{width:min(75vw,760px)}
+  .archive-row.feature-row,.archive-row.equal-row{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:760px){
+  :root{--gutter:18px;--radius-panel:24px;--radius-card:16px}
+  .case-hero{padding-top:78px}
+  .case-intro-panel{border-radius:24px}
+  .case-intro-copy{padding:34px 22px 28px}
+  .case-title,.case-intro-panel.opera .case-title{max-width:12ch;font-size:clamp(46px,13.2vw,64px);line-height:.93}
+  .case-intro-copy .lead{margin-top:20px;font-size:17px}
+  .case-meta-strip{grid-template-columns:1fr 1fr;padding-inline:22px}
+  .case-meta-strip div{padding:15px 14px 16px 0}
+  .case-meta-strip div+div{padding-left:14px}
+  .case-meta-strip div:nth-child(3){border-left:0;border-top:1px solid rgba(255,255,255,.17);padding-left:0}
+  .case-meta-strip div:nth-child(4){border-top:1px solid rgba(255,255,255,.17)}
+  .key-visual-block{padding:12px 8px 13px;border-radius:24px}
+  .key-visual-topline{padding:4px 7px 10px}
+  .key-visual-shell,.key-visual-block.golden .key-visual-shell,.key-visual-block.rugs .key-visual-shell{min-height:440px}
+  .key-visual-deck,.key-visual-block.golden .key-visual-deck,.key-visual-block.rugs .key-visual-deck{height:392px}
+  .key-visual-card,.key-visual-block.golden .key-visual-card,.key-visual-block.rugs .key-visual-card{width:min(78vw,340px)}
+  .key-visual-block.golden .key-visual-stage,.key-visual-block.rugs .key-visual-stage{aspect-ratio:4/3}
+  .key-visual-card.is-prev{transform:translate3d(calc(-50% - 24%),-50%,-100px) rotateY(7deg) scale(.81)}
+  .key-visual-card.is-next{transform:translate3d(calc(-50% + 24%),-50%,-100px) rotateY(-7deg) scale(.81)}
+  .key-visual-edge-control{width:42px;height:42px;font-size:18px}
+  .key-visual-edge-prev{left:2px}.key-visual-edge-next{right:2px}
+  .key-visual-navigation{grid-template-columns:1fr auto;padding:9px 6px 0}
+  .key-visual-hint{grid-column:1/-1;grid-row:2;text-align:center;justify-self:center}
+  .key-visual-pagination{justify-content:flex-start}
+  .opera-work-section{padding-block:58px}
+  .opera-section-head{margin-bottom:26px}
+  .opera-section-head .h2{font-size:clamp(38px,11vw,52px)}
+  .opera-section-head .lead{font-size:17px}
+  .opera-pair-grid,.opera-story-grid,.opera-campaign-grid{grid-template-columns:1fr}
+  .opera-art-card{border-radius:16px}
+  .golden-pair .opera-art-stage{aspect-ratio:auto;padding:0}
+  .golden-pair .opera-art-stage picture{height:auto}
+  .golden-pair .opera-art-stage img{height:auto}
+  .opera-phone-shell{width:min(100%,320px)}
+  .opera-campaign-grid .opera-art-card:last-child{grid-column:auto;width:auto}
+  .archive-row.feature-row,.archive-row.equal-row{grid-template-columns:1fr}
+  .archive-row.feature-row .archive-media,.archive-row.equal-row .archive-media{height:auto;aspect-ratio:1.18}
+}
+
+@media(max-width:430px){
+  .case-meta-strip{grid-template-columns:1fr}
+  .case-meta-strip div+div,.case-meta-strip div:nth-child(3),.case-meta-strip div:nth-child(4){padding-left:0;border-left:0;border-top:1px solid rgba(255,255,255,.17)}
+  .key-visual-shell,.key-visual-block.golden .key-visual-shell,.key-visual-block.rugs .key-visual-shell{min-height:412px}
+  .key-visual-deck,.key-visual-block.golden .key-visual-deck,.key-visual-block.rugs .key-visual-deck{height:365px}
+  .key-visual-card,.key-visual-block.golden .key-visual-card,.key-visual-block.rugs .key-visual-card{width:79vw}
+}
