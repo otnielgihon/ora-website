@@ -52,7 +52,7 @@ button,[role="button"]{touch-action:manipulation}
 body.page-leaving .page-transition{opacity:1}
 
 /* header */
-.site-header{position:fixed;z-index:300;inset:0 0 auto;padding:max(12px,env(safe-area-inset-top)) 0 0;pointer-events:none;transform:translate3d(0,0,0);opacity:1;transition:transform .42s var(--ease),opacity .3s ease}
+.site-header{position:fixed;z-index:310;inset:0 0 auto;padding:max(12px,env(safe-area-inset-top)) 0 0;pointer-events:none;transform:translate3d(0,0,0);opacity:1;transition:transform .42s var(--ease),opacity .3s ease}
 .site-header.nav-hidden{transform:translate3d(0,-125%,0);opacity:0}
 .site-header:focus-within{transform:translate3d(0,0,0)!important;opacity:1!important}
 .navbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;min-height:62px;padding:9px 11px 9px 18px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(15,13,12,.78);backdrop-filter:blur(18px) saturate(130%);box-shadow:0 18px 54px rgba(0,0,0,.28);pointer-events:auto;transition:background .35s,border-color .35s,box-shadow .35s}
@@ -64,10 +64,10 @@ body.page-leaving .page-transition{opacity:1}
 .desktop-nav a:hover,.desktop-nav a.is-active,.desktop-nav a[aria-current="page"]{background:rgba(255,255,255,.085);color:#fff}
 .nav-actions{display:flex;align-items:center;gap:8px}.nav-actions .button{min-height:42px;padding-inline:17px;font-size:12px}
 .menu-button{display:none;min-width:72px;min-height:42px;border:0;border-radius:999px;background:rgba(255,255,255,.08);cursor:pointer}
-.mobile-menu{position:fixed;z-index:302;top:calc(max(12px,env(safe-area-inset-top)) + 74px);right:var(--gutter);left:var(--gutter);display:grid;gap:4px;padding:12px;border:1px solid var(--line);border-radius:var(--radius-card);background:rgba(15,13,12,.98);box-shadow:var(--shadow);opacity:0;transform:translateY(-12px) scale(.985);visibility:hidden;pointer-events:none;transition:opacity .26s ease,transform .34s var(--ease),visibility .26s}
+.mobile-menu{position:fixed;z-index:312;top:calc(max(12px,env(safe-area-inset-top)) + 74px);right:var(--gutter);left:var(--gutter);display:grid;gap:4px;padding:12px;border:1px solid var(--line);border-radius:var(--radius-card);background:rgba(15,13,12,.98);box-shadow:var(--shadow);opacity:0;transform:translateY(-12px) scale(.985);visibility:hidden;pointer-events:none;transition:opacity .26s ease,transform .34s var(--ease),visibility .26s}
 .mobile-menu.open{opacity:1;transform:none;visibility:visible;pointer-events:auto}
-.mobile-menu a{display:flex;min-height:52px;align-items:center;padding:0 16px;border-radius:14px;font-size:17px}.mobile-menu a:hover,.mobile-menu a:focus-visible{background:rgba(255,255,255,.07)}
-.menu-scrim{position:fixed;z-index:301;inset:0;border:0;background:rgba(0,0,0,.48);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s,visibility .26s}
+.mobile-menu a{position:relative;z-index:1;display:flex;min-height:52px;align-items:center;padding:0 16px;border-radius:14px;font-size:17px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.10)}.mobile-menu a:hover,.mobile-menu a:focus-visible{background:rgba(255,255,255,.07)}
+.menu-scrim{position:fixed;z-index:300;inset:0;border:0;background:rgba(0,0,0,.48);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s,visibility .26s}
 body.menu-open .menu-scrim{opacity:1;visibility:visible;pointer-events:auto}
 
 /* hero */
@@ -789,3 +789,11 @@ body.menu-open .menu-scrim{opacity:1;visibility:visible;pointer-events:auto}
   .key-visual-deck,.key-visual-block.golden .key-visual-deck,.key-visual-block.rugs .key-visual-deck{height:365px}
   .key-visual-card,.key-visual-block.golden .key-visual-card,.key-visual-block.rugs .key-visual-card{width:79vw}
 }
+
+/* V23 mobile-navigation interaction fix */
+body.menu-open .site-header{z-index:310;pointer-events:auto}
+body.menu-open .navbar,body.menu-open .mobile-menu{pointer-events:auto}
+.mobile-menu{isolation:isolate;touch-action:manipulation}
+.mobile-menu a:active{background:rgba(255,255,255,.12);transform:scale(.99)}
+section[id]{scroll-margin-top:104px}
+@media (max-width:760px){section[id]{scroll-margin-top:84px}.mobile-menu a{min-height:56px}}

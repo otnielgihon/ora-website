@@ -62,8 +62,9 @@
   /* Accessible mobile navigation */
   let returnFocus = null;
   const focusableSelector = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const setMenu = (open) => {
+  const setMenu = (open, { restoreFocus = true } = {}) => {
     if (!menuButton || !mobileMenu) return;
     body.classList.toggle('menu-open', open);
     mobileMenu.classList.toggle('open', open);
@@ -71,19 +72,65 @@
     menuButton.setAttribute('aria-expanded', String(open));
     menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     menuButton.textContent = open ? 'Close' : 'Menu';
+
     if (open) {
       returnFocus = document.activeElement;
       revealHeader();
-      requestAnimationFrame(() => mobileMenu.querySelector(focusableSelector)?.focus());
-    } else if (returnFocus instanceof HTMLElement) {
-      returnFocus.focus({ preventScroll: true });
-      returnFocus = null;
+      requestAnimationFrame(() => mobileMenu.querySelector(focusableSelector)?.focus({ preventScroll: true }));
+      return;
     }
+
+    if (restoreFocus && returnFocus instanceof HTMLElement) {
+      returnFocus.focus({ preventScroll: true });
+    }
+    returnFocus = null;
   };
 
-  menuButton?.addEventListener('click', () => setMenu(!body.classList.contains('menu-open')));
-  menuScrim?.addEventListener('click', () => setMenu(false));
-  mobileMenu?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setMenu(false)));
+  const navigateFromMobileMenu = (event) => {
+    const link = event.currentTarget;
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    const targetURL = new URL(href, location.href);
+    const sameDocument = targetURL.origin === location.origin && targetURL.pathname === location.pathname;
+    const hashId = targetURL.hash ? decodeURIComponent(targetURL.hash.slice(1)) : '';
+    const targetSection = sameDocument && hashId ? document.getElementById(hashId) : null;
+
+    // Handle navigation explicitly so closing the overlay never consumes the tap.
+    event.preventDefault();
+    event.stopPropagation();
+    setMenu(false, { restoreFocus: false });
+    revealHeader();
+
+    if (targetSection) {
+      window.setTimeout(() => {
+        history.pushState(null, '', targetURL.hash);
+        targetSection.scrollIntoView({
+          behavior: reducedMotion ? 'auto' : 'smooth',
+          block: 'start'
+        });
+      }, 40);
+      return;
+    }
+
+    body.classList.add('page-leaving');
+    window.setTimeout(() => {
+      location.href = targetURL.href;
+    }, reducedMotion ? 0 : 140);
+  };
+
+  menuButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setMenu(!body.classList.contains('menu-open'));
+  });
+  menuScrim?.addEventListener('click', (event) => {
+    event.preventDefault();
+    setMenu(false);
+  });
+  mobileMenu?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', navigateFromMobileMenu);
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
