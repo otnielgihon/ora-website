@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 100" role="img" aria-labelledby="title">
+  <title id="title">ORA</title>
+  <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter">
+    <ellipse cx="52" cy="50" rx="44" ry="43"/>
+    <path d="M112 93V7h46c25 0 40 16 40 39s-15 39-40 39h-46M158 54l43 39"/>
+    <path d="M202 93l43-86 43 86M221 55h48"/>
+  </g>
+</svg>
