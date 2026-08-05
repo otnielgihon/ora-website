@@ -40,11 +40,11 @@
       if (y < 30 || menuOpen || header.matches(':focus-within')) {
         revealHeader();
         directionDistance = 0;
-      } else if (directionDistance > 42 && y > 150) {
+      } else if (directionDistance > 72 && y > 150) {
         header.classList.add('nav-hidden');
         header.classList.remove('nav-visible');
         directionDistance = 0;
-      } else if (directionDistance < -18) {
+      } else if (directionDistance < -28) {
         revealHeader();
         directionDistance = 0;
       }
@@ -62,75 +62,41 @@
   /* Accessible mobile navigation */
   let returnFocus = null;
   const focusableSelector = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const setMenu = (open, { restoreFocus = true } = {}) => {
+  const setMenu = (open) => {
     if (!menuButton || !mobileMenu) return;
     body.classList.toggle('menu-open', open);
     mobileMenu.classList.toggle('open', open);
     mobileMenu.setAttribute('aria-hidden', String(!open));
+    mobileMenu.toggleAttribute('inert', !open);
     menuButton.setAttribute('aria-expanded', String(open));
     menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     menuButton.textContent = open ? 'Close' : 'Menu';
-
     if (open) {
       returnFocus = document.activeElement;
       revealHeader();
-      requestAnimationFrame(() => mobileMenu.querySelector(focusableSelector)?.focus({ preventScroll: true }));
-      return;
-    }
-
-    if (restoreFocus && returnFocus instanceof HTMLElement) {
+      requestAnimationFrame(() => mobileMenu.querySelector(focusableSelector)?.focus());
+    } else if (returnFocus instanceof HTMLElement) {
       returnFocus.focus({ preventScroll: true });
+      returnFocus = null;
     }
-    returnFocus = null;
   };
 
-  const navigateFromMobileMenu = (event) => {
-    const link = event.currentTarget;
-    const href = link.getAttribute('href');
-    if (!href) return;
-
-    const targetURL = new URL(href, location.href);
-    const sameDocument = targetURL.origin === location.origin && targetURL.pathname === location.pathname;
-    const hashId = targetURL.hash ? decodeURIComponent(targetURL.hash.slice(1)) : '';
-    const targetSection = sameDocument && hashId ? document.getElementById(hashId) : null;
-
-    // Handle navigation explicitly so closing the overlay never consumes the tap.
-    event.preventDefault();
-    event.stopPropagation();
-    setMenu(false, { restoreFocus: false });
-    revealHeader();
-
-    if (targetSection) {
-      window.setTimeout(() => {
-        history.pushState(null, '', targetURL.hash);
-        targetSection.scrollIntoView({
-          behavior: reducedMotion ? 'auto' : 'smooth',
-          block: 'start'
-        });
-      }, 40);
-      return;
+  menuButton?.addEventListener('click', () => setMenu(!body.classList.contains('menu-open')));
+  menuScrim?.addEventListener('click', () => setMenu(false));
+  mobileMenu?.querySelectorAll('a').forEach(link => link.addEventListener('click', (event) => {
+    const href = link.getAttribute('href') || '';
+    const target = new URL(href, location.href);
+    const samePage = target.pathname === location.pathname && target.hash;
+    if (samePage) {
+      event.preventDefault();
+      const section = document.querySelector(target.hash);
+      setMenu(false);
+      window.setTimeout(() => section?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    } else {
+      setMenu(false);
     }
-
-    body.classList.add('page-leaving');
-    window.setTimeout(() => {
-      location.href = targetURL.href;
-    }, reducedMotion ? 0 : 140);
-  };
-
-  menuButton?.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setMenu(!body.classList.contains('menu-open'));
-  });
-  menuScrim?.addEventListener('click', (event) => {
-    event.preventDefault();
-    setMenu(false);
-  });
-  mobileMenu?.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', navigateFromMobileMenu);
-  });
+  }));
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -192,27 +158,10 @@
     const sectionObserver = new IntersectionObserver((entries) => {
       const current = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
       if (!current) return;
-      navLinks.forEach(link => link.classList.remove('is-active'));
-      sectionMap.get(current.target)?.forEach(link => link.classList.add('is-active'));
+      navLinks.forEach(link => { link.classList.remove('is-active'); link.removeAttribute('aria-current'); });
+      sectionMap.get(current.target)?.forEach(link => { link.classList.add('is-active'); link.setAttribute('aria-current','location'); });
     }, { threshold: [0.25, 0.5], rootMargin: '-22% 0px -62% 0px' });
     sectionMap.forEach((_, section) => sectionObserver.observe(section));
-  }
-
-  /* Direct interaction: subtle hero response on precise pointers */
-  if (finePointer) {
-    const heroVisual = document.querySelector('.hero-visual');
-    const screen = heroVisual?.querySelector('.screen-card');
-    heroVisual?.addEventListener('pointermove', (event) => {
-      const rect = heroVisual.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
-      const y = ((event.clientY - rect.top) / rect.height - 0.5) * 7;
-      screen?.style.setProperty('--hero-x', `${x}px`);
-      screen?.style.setProperty('--hero-y', `${y}px`);
-    });
-    heroVisual?.addEventListener('pointerleave', () => {
-      screen?.style.setProperty('--hero-x', '0px');
-      screen?.style.setProperty('--hero-y', '0px');
-    });
   }
 
   /* Portfolio lightbox: real affordance for archive cards */
@@ -487,7 +436,7 @@
     if (target.pathname === location.pathname && target.hash) return;
     event.preventDefault();
     body.classList.add('page-leaving');
-    setTimeout(() => { location.href = href; }, 190);
+    setTimeout(() => { location.href = href; }, 140);
   });
 
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
