@@ -825,3 +825,89 @@ body{min-width:320px}
 @media(prefers-reduced-motion:reduce){
   .screen-card{transform:rotate(-2deg)!important}
 }
+
+/* ========================================================================
+   V25 — MORE SELECTED WORK LAYOUT FIX
+   The archive rows must span the complete parent width. The previous
+   12-column grid definition compressed each row into a single grid track.
+   ======================================================================== */
+.archive .archive-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%;
+  min-width:0;
+  gap:clamp(36px,4.5vw,64px);
+}
+.archive .archive-row{
+  grid-column:1 / -1!important;
+  width:100%;
+  min-width:0;
+}
+.archive .archive-row.feature-row{
+  grid-template-columns:minmax(0,1.48fr) minmax(300px,.82fr);
+}
+.archive .archive-row.equal-row{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.archive .archive-card{
+  min-width:0;
+  overflow:visible;
+}
+.archive .archive-media{
+  width:100%;
+}
+.archive .archive-meta{
+  align-items:flex-start;
+  padding-top:14px;
+}
+.archive .archive-meta > div{
+  min-width:0;
+}
+.archive .archive-meta h3{
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.archive .archive-meta p{
+  max-width:34ch;
+  overflow-wrap:anywhere;
+}
+.archive .archive-meta > span{
+  flex:0 0 auto;
+  padding-top:2px;
+}
+@media(max-width:1100px){
+  .archive .archive-row.feature-row,
+  .archive .archive-row.equal-row{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .archive .archive-row.feature-row .archive-media,
+  .archive .archive-row.equal-row .archive-media{
+    height:auto;
+    aspect-ratio:1.08;
+  }
+}
+@media(max-width:760px){
+  .archive .archive-grid{
+    gap:42px;
+  }
+  .archive .archive-row.feature-row,
+  .archive .archive-row.equal-row{
+    grid-template-columns:minmax(0,1fr);
+    gap:34px;
+  }
+  .archive .archive-row.feature-row .archive-media,
+  .archive .archive-row.equal-row .archive-media{
+    height:auto;
+    aspect-ratio:1.08;
+  }
+  .archive .archive-meta{
+    gap:12px;
+  }
+  .archive .archive-meta h3{
+    font-size:16px;
+  }
+  .archive .archive-meta p,
+  .archive .archive-meta > span{
+    font-size:12px;
+  }
+}
