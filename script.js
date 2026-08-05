@@ -143,7 +143,10 @@
     }
   });
 
-  /* Active section navigation */
+  /* Active section navigation — deterministic scroll spy.
+     The previous IntersectionObserver could keep an older section active when
+     callbacks arrived in separate batches. The active item is now calculated
+     from one stable viewport marker on every scroll frame. */
   const navLinks = [...document.querySelectorAll('.desktop-nav a, .mobile-menu a')];
   const sectionMap = new Map();
   navLinks.forEach(link => {
@@ -154,14 +157,70 @@
     if (!sectionMap.has(section)) sectionMap.set(section, []);
     sectionMap.get(section).push(link);
   });
+
   if (sectionMap.size) {
-    const sectionObserver = new IntersectionObserver((entries) => {
-      const current = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (!current) return;
-      navLinks.forEach(link => { link.classList.remove('is-active'); link.removeAttribute('aria-current'); });
-      sectionMap.get(current.target)?.forEach(link => { link.classList.add('is-active'); link.setAttribute('aria-current','location'); });
-    }, { threshold: [0.25, 0.5], rootMargin: '-22% 0px -62% 0px' });
-    sectionMap.forEach((_, section) => sectionObserver.observe(section));
+    const sections = [...sectionMap.keys()].sort((a, b) => {
+      if (a === b) return 0;
+      return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+    let activeSection = null;
+    let spyFrame = 0;
+
+    const setActiveSection = (section) => {
+      if (section === activeSection) return;
+      activeSection = section;
+      navLinks.forEach(link => {
+        link.classList.remove('is-active');
+        link.removeAttribute('aria-current');
+      });
+      sectionMap.get(section)?.forEach(link => {
+        link.classList.add('is-active');
+        link.setAttribute('aria-current', 'location');
+      });
+    };
+
+    const updateActiveSection = () => {
+      spyFrame = 0;
+      const pageBottom = window.scrollY + window.innerHeight >= doc.scrollHeight - 8;
+      if (pageBottom) {
+        setActiveSection(sections.at(-1));
+        return;
+      }
+
+      const headerHeight = header?.getBoundingClientRect().height || 0;
+      const marker = Math.max(headerHeight + 24, window.innerHeight * 0.28);
+      let current = null;
+
+      for (const section of sections) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= marker) current = section;
+        else break;
+      }
+
+      /* Keep the hero neutral until the first navigable section reaches the
+         reading zone, instead of preselecting About on initial load. */
+      setActiveSection(current);
+    };
+
+    const requestSpyUpdate = () => {
+      if (!spyFrame) spyFrame = requestAnimationFrame(updateActiveSection);
+    };
+
+    addEventListener('scroll', requestSpyUpdate, { passive: true });
+    addEventListener('resize', requestSpyUpdate, { passive: true });
+    addEventListener('hashchange', () => {
+      requestAnimationFrame(updateActiveSection);
+      window.setTimeout(updateActiveSection, 420);
+    });
+
+    document.querySelectorAll('.desktop-nav a, .mobile-menu a, .hero-actions a, .service-row').forEach(link => {
+      link.addEventListener('click', () => {
+        requestAnimationFrame(updateActiveSection);
+        window.setTimeout(updateActiveSection, 420);
+      });
+    });
+
+    updateActiveSection();
   }
 
   /* Portfolio lightbox: real affordance for archive cards */

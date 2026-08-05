@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7fcff"/><stop offset=".55" stop-color="#cdefff"/><stop offset="1" stop-color="#7e9ff0"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="34"/></filter></defs>
-<rect width="1200" height="900" fill="url(#g)"/><circle cx="950" cy="150" r="220" fill="#fff" opacity=".55" filter="url(#b)"/><rect x="95" y="95" width="1010" height="710" rx="42" fill="#fff" opacity=".28" stroke="#fff" stroke-opacity=".65"/>
-<g transform="translate(160 130)" fill="none" stroke="#fff" stroke-width="8" opacity=".95"><path d="M310 95h120v72c0 24 10 48 27 65 38 38 60 90 60 144v240c0 62-50 112-112 112H335c-62 0-112-50-112-112V376c0-54 22-106 60-144 17-17 27-41 27-65V95z"/><rect x="308" y="52" width="124" height="52" rx="18"/><rect x="252" y="360" width="236" height="112" rx="28" fill="#fff" fill-opacity=".3"/><path d="M278 417h184"/></g>
-<g transform="translate(760 275)" fill="#214c70"><rect width="245" height="34" rx="17" opacity=".85"/><rect y="68" width="160" height="18" rx="9" opacity=".45"/><rect y="104" width="205" height="18" rx="9" opacity=".32"/><rect y="178" width="190" height="62" rx="31" fill="#fff" opacity=".72"/></g>
-</svg>
