@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+
+# PRODUCTION VALUE REQUIRED: replace the placeholder before deployment.
+Sitemap: {{PRODUCTION_SITE_URL_REQUIRED}}/sitemap.xml

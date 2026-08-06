@@ -36,8 +36,9 @@
         ? directionDistance + delta
         : delta;
       const menuOpen = body.classList.contains('menu-open');
+      const programmaticScroll = body.classList.contains('is-programmatic-scroll');
 
-      if (y < 30 || menuOpen || header.matches(':focus-within')) {
+      if (y < 30 || menuOpen || programmaticScroll || header.matches(':focus-within')) {
         revealHeader();
         directionDistance = 0;
       } else if (directionDistance > 72 && y > 150) {
@@ -75,7 +76,11 @@
     if (open) {
       returnFocus = document.activeElement;
       revealHeader();
-      requestAnimationFrame(() => mobileMenu.querySelector(focusableSelector)?.focus());
+      const firstMenuItem = mobileMenu.querySelector(focusableSelector);
+      firstMenuItem?.focus({ preventScroll: true });
+      if (document.activeElement !== firstMenuItem) {
+        requestAnimationFrame(() => firstMenuItem?.focus({ preventScroll: true }));
+      }
     } else if (returnFocus instanceof HTMLElement) {
       returnFocus.focus({ preventScroll: true });
       returnFocus = null;
@@ -84,19 +89,6 @@
 
   menuButton?.addEventListener('click', () => setMenu(!body.classList.contains('menu-open')));
   menuScrim?.addEventListener('click', () => setMenu(false));
-  mobileMenu?.querySelectorAll('a').forEach(link => link.addEventListener('click', (event) => {
-    const href = link.getAttribute('href') || '';
-    const target = new URL(href, location.href);
-    const samePage = target.pathname === location.pathname && target.hash;
-    if (samePage) {
-      event.preventDefault();
-      const section = document.querySelector(target.hash);
-      setMenu(false);
-      window.setTimeout(() => section?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-    } else {
-      setMenu(false);
-    }
-  }));
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -110,7 +102,10 @@
       if (!focusables.length) return;
       const first = focusables[0];
       const last = focusables.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
+      if (!mobileMenu.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -143,16 +138,15 @@
     }
   });
 
-  /* Active section navigation — deterministic scroll spy.
-     The previous IntersectionObserver could keep an older section active when
-     callbacks arrived in separate batches. The active item is now calculated
-     from one stable viewport marker on every scroll frame. */
+  /* Precise section navigation + deterministic scroll spy.
+     One navigation controller owns desktop links, mobile links, CTAs, URL
+     history, fixed-header offset, and final-position correction. */
   const navLinks = [...document.querySelectorAll('.desktop-nav a, .mobile-menu a')];
   const sectionMap = new Map();
   navLinks.forEach(link => {
     const href = link.getAttribute('href') || '';
     const id = href.includes('#') ? href.split('#').pop() : '';
-    const section = id && document.getElementById(id);
+    const section = id && document.getElementById(decodeURIComponent(id));
     if (!section) return;
     if (!sectionMap.has(section)) sectionMap.set(section, []);
     sectionMap.get(section).push(link);
@@ -163,7 +157,11 @@
       if (a === b) return 0;
       return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
     });
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let activeSection = null;
+    let navigationTarget = null;
+    let navigationAnimationFrame = 0;
+    let navigationToken = 0;
     let spyFrame = 0;
 
     const setActiveSection = (section) => {
@@ -179,26 +177,116 @@
       });
     };
 
+    const headerOffset = () => {
+      /* offsetHeight is unaffected by the header's translate transform, unlike
+         getBoundingClientRect().bottom while the navbar is animating in. */
+      const height = header?.offsetHeight || 0;
+      return Math.ceil(height + (innerWidth <= 760 ? 10 : 16));
+    };
+
+    const targetScrollTop = (section) => {
+      const documentTop = window.scrollY + section.getBoundingClientRect().top;
+      const maximum = Math.max(0, doc.scrollHeight - innerHeight);
+      return Math.max(0, Math.min(maximum, Math.round(documentTop - headerOffset())));
+    };
+
+    const sameDocumentSection = (link) => {
+      const href = link?.getAttribute('href') || '';
+      if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return null;
+      let target;
+      try { target = new URL(href, location.href); } catch { return null; }
+      if (!target.hash) return null;
+
+      const clean = path => decodeURIComponent(path).replace(/\/+$/, '').replace(/\/index\.html$/i, '');
+      if (clean(target.pathname) !== clean(location.pathname)) return null;
+      return document.getElementById(decodeURIComponent(target.hash.slice(1)));
+    };
+
+    const finishNavigation = (section, token) => {
+      if (token !== navigationToken || navigationTarget !== section) return;
+      cancelAnimationFrame(navigationAnimationFrame);
+      const exact = targetScrollTop(section);
+      window.scrollTo({ top: exact, behavior: 'auto' });
+      navigationTarget = null;
+      body.classList.remove('is-programmatic-scroll');
+      doc.classList.remove('is-programmatic-scroll');
+      setActiveSection(section);
+      requestAnimationFrame(updateActiveSection);
+    };
+
+    const animateNavigation = (section, token, requestedBehavior) => {
+      cancelAnimationFrame(navigationAnimationFrame);
+      const startY = window.scrollY;
+      const firstTarget = targetScrollTop(section);
+      const distance = firstTarget - startY;
+      const useMotion = requestedBehavior !== 'auto' && !reducedMotion && Math.abs(distance) > 3;
+
+      if (!useMotion) {
+        window.scrollTo({ top: firstTarget, behavior: 'auto' });
+        requestAnimationFrame(() => finishNavigation(section, token));
+        return;
+      }
+
+      /* Native smooth scrolling can take several seconds across a long
+         portfolio page and may finish at a stale offset. A short, capped,
+         interruptible animation keeps every destination fast and exact. */
+      const duration = Math.min(620, Math.max(300, 300 + Math.abs(distance) * .045));
+      const startedAt = performance.now();
+      const easeOutQuart = value => 1 - Math.pow(1 - value, 4);
+
+      const step = now => {
+        if (token !== navigationToken || navigationTarget !== section) return;
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const currentTarget = targetScrollTop(section);
+        const nextY = startY + (currentTarget - startY) * easeOutQuart(progress);
+        window.scrollTo({ top: nextY, behavior: 'auto' });
+        if (progress < 1) navigationAnimationFrame = requestAnimationFrame(step);
+        else finishNavigation(section, token);
+      };
+      navigationAnimationFrame = requestAnimationFrame(step);
+    };
+
+    const navigateToSection = (section, { updateHistory = true, behavior } = {}) => {
+      if (!section) return;
+      const token = ++navigationToken;
+      navigationTarget = section;
+      body.classList.add('is-programmatic-scroll');
+      doc.classList.add('is-programmatic-scroll');
+      revealHeader();
+      setActiveSection(section);
+
+      if (body.classList.contains('menu-open')) setMenu(false);
+
+      const hash = `#${encodeURIComponent(section.id)}`;
+      if (updateHistory && location.hash !== hash) history.pushState({ oraSection: section.id }, '', hash);
+
+      /* Two animation frames let the mobile menu close and the visible navbar
+         state commit before measuring the exact destination. */
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (token !== navigationToken) return;
+        animateNavigation(section, token, behavior || (reducedMotion ? 'auto' : 'smooth'));
+      }));
+    };
+
     const updateActiveSection = () => {
       spyFrame = 0;
+      if (navigationTarget) {
+        setActiveSection(navigationTarget);
+        return;
+      }
+
       const pageBottom = window.scrollY + window.innerHeight >= doc.scrollHeight - 8;
       if (pageBottom) {
         setActiveSection(sections.at(-1));
         return;
       }
 
-      const headerHeight = header?.getBoundingClientRect().height || 0;
-      const marker = Math.max(headerHeight + 24, window.innerHeight * 0.28);
+      const marker = headerOffset() + Math.max(16, window.innerHeight * .18);
       let current = null;
-
       for (const section of sections) {
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= marker) current = section;
+        if (section.getBoundingClientRect().top <= marker) current = section;
         else break;
       }
-
-      /* Keep the hero neutral until the first navigable section reaches the
-         reading zone, instead of preselecting About on initial load. */
       setActiveSection(current);
     };
 
@@ -206,19 +294,59 @@
       if (!spyFrame) spyFrame = requestAnimationFrame(updateActiveSection);
     };
 
+    /* Capture phase ensures this handler wins before any legacy transition or
+       nested component handler can interpret the same click. */
+    document.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest('a[href]');
+      if (link?.classList.contains('skip-link')) {
+        const main = document.getElementById('main');
+        if (!main) return;
+        event.preventDefault();
+        main.focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        return;
+      }
+      const section = sameDocumentSection(link);
+      if (!section) return;
+      event.preventDefault();
+      event.stopPropagation();
+      navigateToSection(section);
+    }, true);
+
     addEventListener('scroll', requestSpyUpdate, { passive: true });
     addEventListener('resize', requestSpyUpdate, { passive: true });
-    addEventListener('hashchange', () => {
-      requestAnimationFrame(updateActiveSection);
-      window.setTimeout(updateActiveSection, 420);
-    });
 
-    document.querySelectorAll('.desktop-nav a, .mobile-menu a, .hero-actions a, .service-row').forEach(link => {
-      link.addEventListener('click', () => {
-        requestAnimationFrame(updateActiveSection);
-        window.setTimeout(updateActiveSection, 420);
-      });
-    });
+    const navigateFromLocation = (behavior = 'auto') => {
+      if (!location.hash) {
+        navigationTarget = null;
+        body.classList.remove('is-programmatic-scroll');
+        doc.classList.remove('is-programmatic-scroll');
+        updateActiveSection();
+        return;
+      }
+      const section = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (sectionMap.has(section)) navigateToSection(section, { updateHistory: false, behavior });
+    };
+
+
+    const cancelProgrammaticNavigation = () => {
+      if (!navigationTarget) return;
+      navigationToken += 1;
+      cancelAnimationFrame(navigationAnimationFrame);
+      navigationTarget = null;
+      body.classList.remove('is-programmatic-scroll');
+      doc.classList.remove('is-programmatic-scroll');
+      requestSpyUpdate();
+    };
+    addEventListener('wheel', cancelProgrammaticNavigation, { passive: true });
+    addEventListener('touchstart', cancelProgrammaticNavigation, { passive: true });
+
+    addEventListener('popstate', () => navigateFromLocation(reducedMotion ? 'auto' : 'smooth'));
+    addEventListener('load', () => {
+      if (location.hash) navigateFromLocation('auto');
+      else updateActiveSection();
+    }, { once: true });
 
     updateActiveSection();
   }

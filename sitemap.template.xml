@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- PRODUCTION VALUE REQUIRED: replace the placeholder and publish as sitemap.xml. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>{{SITE_URL}}/index.html</loc></url>
-  <url><loc>{{SITE_URL}}/project-opera.html</loc></url>
-  <url><loc>{{SITE_URL}}/project-bms.html</loc></url>
-  <url><loc>{{SITE_URL}}/project-golden-swallow.html</loc></url>
-  <url><loc>{{SITE_URL}}/project-what-the-rugs.html</loc></url>
+  <url><loc>{{PRODUCTION_SITE_URL_REQUIRED}}/index.html</loc></url>
+  <url><loc>{{PRODUCTION_SITE_URL_REQUIRED}}/project-opera.html</loc></url>
+  <url><loc>{{PRODUCTION_SITE_URL_REQUIRED}}/project-bms.html</loc></url>
+  <url><loc>{{PRODUCTION_SITE_URL_REQUIRED}}/project-golden-swallow.html</loc></url>
+  <url><loc>{{PRODUCTION_SITE_URL_REQUIRED}}/project-what-the-rugs.html</loc></url>
 </urlset>
